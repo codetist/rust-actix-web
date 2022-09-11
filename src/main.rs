@@ -1,30 +1,16 @@
-use actix_web::{get, post, App, HttpResponse, Responder, HttpServer, web};
-use actix_web_static_files::ResourceFiles;
-use crate::models::Post;
-
 mod models;
+mod handlers;
+
+use actix_web::{App, HttpServer, web};
+use actix_web_static_files::ResourceFiles;
+use crate::handlers::handlers::*;
 
 include!(concat!(env!("OUT_DIR"), "/generated.rs"));
-
-#[get("/api/post/{post_id}")]
-async fn greet(post_id: web::Path<usize>) -> impl Responder {
-    let post = Post {
-        post_id: post_id.into_inner(),
-        content: "Greetings...".parse().unwrap(),
-    };
-
-    HttpResponse::Ok().json(post)
-}
-
-#[post("/api/echo")]
-async fn echo(post: web::Json<Post>) -> impl Responder {
-    HttpResponse::Ok().json(post)
-}
 
 fn register_app_services(config: &mut web::ServiceConfig) {
     let generated = generate();
     config
-        .service(greet)
+        .service(greet_handler)
         .service(echo)
         .service(ResourceFiles::new("/", generated));
 }
@@ -45,10 +31,11 @@ mod integration_tests {
     use super::*;
 
     use actix_web::{http::header::ContentType, test, App};
-    use actix_web::http::StatusCode;
     use actix_web::test::TestRequest;
     use actix_web::web::Bytes;
     use actix_http::Request;
+    use actix_web::http::StatusCode;
+    use crate::models::post::Post;
 
     fn build_get_request(path: &str, content_type: ContentType) -> Request {
         TestRequest::get()
