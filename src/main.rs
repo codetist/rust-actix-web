@@ -9,9 +9,13 @@ include!(concat!(env!("OUT_DIR"), "/generated.rs"));
 
 fn register_app_services(config: &mut web::ServiceConfig) {
     let generated = generate();
-    config
-        .service(greet_handler)
-        .service(echo)
+
+    let post_scope = web::scope("/api")
+        .service(get_posts_handler)
+        .service(get_post_handler)
+        .service(post_echo_handler);
+
+    config.service(post_scope)
         .service(ResourceFiles::new("/", generated));
 }
 
@@ -27,7 +31,7 @@ async fn main() -> std::io::Result<()> {
 }
 
 #[cfg(test)]
-mod integration_tests {
+mod app_integration_tests {
     use super::*;
 
     use actix_web::{http::header::ContentType, test, App};
@@ -68,7 +72,7 @@ mod integration_tests {
 
         // when
         let app = test::init_service(App::new().configure(register_app_services)).await;
-        let req = build_get_request(format!("{}{}", "/api/post/", post_id.to_string()).as_str(), ContentType::json());
+        let req = build_get_request(format!("{}{}", "/api/posts/", post_id.to_string()).as_str(), ContentType::json());
         let resp = test::call_service(&app, req).await;
         let status = resp.status();
         let body: Post = test::read_body_json(resp).await;

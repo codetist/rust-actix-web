@@ -1,24 +1,46 @@
 
-use actix_web::{get, post, HttpResponse, Responder, web};
+use actix_web::{get, HttpResponse, post, Responder, web};
+use actix_web::http::header::ContentType;
 use crate::models::post::Post;
 
-#[get("/api/post/{post_id}")]
-async fn greet_handler(post_id: web::Path<usize>) -> impl Responder {
-    greet(post_id).await
+#[get("/posts/{post_id}")]
+async fn get_post_handler(post_id: web::Path<usize>) -> Post {
+    get_post(post_id).await
 }
 
-async fn greet(post_id: web::Path<usize>) -> impl Responder {
-    let post = Post {
+async fn get_post(post_id: web::Path<usize>) -> Post {
+    Post {
         post_id: post_id.into_inner(),
         content: "Greetings...".parse().unwrap(),
-    };
-    HttpResponse::Ok().json(post)
+    }
+}
+
+#[get("/posts")]
+async fn get_posts_handler() -> impl Responder {
+    let mut posts : Vec<Post> = Vec::new();
+    posts.push(Post{
+        post_id: 1,
+        content: "Post 1".parse().unwrap(),
+    });
+    posts.push(Post{
+        post_id: 2,
+        content: "Post 2".parse().unwrap(),
+    });
+
+    let body = serde_json::to_string(&posts).unwrap();
+
+    HttpResponse::Ok()
+        .content_type(ContentType::json())
+        .body(body)
 }
 
 
-#[post("/api/echo")]
-async fn echo(post: web::Json<Post>) -> impl Responder {
-    HttpResponse::Ok().json(post)
+#[post("/echo")]
+async fn post_echo_handler(post: web::Json<Post>) -> Post {
+    Post {
+        post_id: post.post_id,
+        content: String::from(&post.content)
+    }
 }
 
 
@@ -26,6 +48,7 @@ async fn echo(post: web::Json<Post>) -> impl Responder {
 mod tests {
     use actix_web::body::to_bytes;
     use actix_web::http::{header, StatusCode};
+    use actix_web::Responder;
     use actix_web::test::TestRequest;
     use super::*;
 
@@ -44,7 +67,7 @@ mod tests {
         let request = TestRequest::default().to_http_request();
 
         // when
-        let result = greet(post_id_path).await;
+        let result = get_post(post_id_path).await;
         let response = result.respond_to(&request);
         let headers = response.headers();
 
