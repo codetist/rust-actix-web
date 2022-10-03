@@ -13,7 +13,8 @@ fn register_app_services(config: &mut web::ServiceConfig) {
     let post_scope = web::scope("/api")
         .service(get_posts_handler)
         .service(get_post_handler)
-        .service(post_echo_handler);
+        .service(post_echo_handler)
+        .service(get_teapot_handler);
 
     config.service(post_scope)
         .service(ResourceFiles::new("/", generated));

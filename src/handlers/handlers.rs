@@ -1,7 +1,8 @@
-
-use actix_web::{get, HttpResponse, post, Responder, web};
+use actix_http::StatusCode;
+use actix_web::{get, post, HttpResponse, Responder, web};
 use actix_web::http::header::ContentType;
 use crate::models::post::Post;
+use crate::models::error::ApiError;
 
 #[get("/posts/{post_id}")]
 async fn get_post_handler(post_id: web::Path<usize>) -> Post {
@@ -43,6 +44,18 @@ async fn post_echo_handler(post: web::Json<Post>) -> Post {
     }
 }
 
+#[get("/teapot")]
+async fn get_teapot_handler() -> Result<Post, ApiError> {
+    return get_teapot().await
+}
+
+async fn get_teapot() -> Result<Post, ApiError> {
+    Err(ApiError {
+        response_code: StatusCode::IM_A_TEAPOT.as_u16(),
+        message: String::from("I am a teapot")
+    })
+}
+
 
 #[cfg(test)]
 mod tests {
@@ -53,7 +66,7 @@ mod tests {
     use super::*;
 
     #[actix_web::test]
-    async fn greet_returns_greeting_with_correct_headers_and_post_id() {
+    async fn get_post_returns_greeting_with_correct_headers_and_post_id() {
 
         // given
         let post_id : usize = 12;
@@ -87,7 +100,21 @@ mod tests {
 
         let current_post : Post = serde_json::from_str(&json_string).unwrap();
         assert_eq!(post, current_post);
+    }
 
+    #[actix_web::test]
+    async fn get_teapot_handler_returns_http_code_418() {
+
+        // when
+        let request = TestRequest::default().to_http_request();
+        let result = get_teapot().await;
+        let response = result.respond_to(&request);
+        let headers = response.headers();
+
+        // then
+        assert_eq!(StatusCode::IM_A_TEAPOT, response.status());
+        assert!(headers.contains_key(header::CONTENT_TYPE));
+        assert_eq!("application/json", headers.get(header::CONTENT_TYPE).unwrap().to_str().unwrap());
     }
 
 }
