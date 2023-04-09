@@ -898,6 +898,19 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a3f87b73ce11b1619a3c6332f45341e0047173771e8b8b73f87bfeefb7b56244"
 
 [[package]]
+name = "rust-actix-web"
+version = "0.1.0"
+dependencies = [
+ "actix-files",
+ "actix-http",
+ "actix-web",
+ "actix-web-static-files",
+ "serde",
+ "serde_json",
+ "static-files",
+]
+
+[[package]]
 name = "rustc_version"
 version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1043,19 +1056,6 @@ dependencies = [
  "proc-macro2",
  "quote",
  "unicode-ident",
-]
-
-[[package]]
-name = "thoughfee"
-version = "0.1.0"
-dependencies = [
- "actix-files",
- "actix-http",
- "actix-web",
- "actix-web-static-files",
- "serde",
- "serde_json",
- "static-files",
 ]
 
 [[package]]
